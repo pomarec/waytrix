@@ -6,10 +6,12 @@ import 'palette.dart';
 
 class Char extends PositionComponent {
   static const fontFamily = "Kawkab Mono Bold";
+  static final charSize = Vector2.all(10);
 
   Char(double x, double y)
       : super(
           position: Vector2(x, y),
+          size: charSize,
         );
 
   @override

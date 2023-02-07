@@ -9,7 +9,7 @@ import 'main.dart';
 import 'palette.dart';
 
 class Line extends TimerComponent with HasGameRef<MatrixApp> {
-  late final double x;
+  final double x;
   late final int length;
   late final Color color;
   int step = 0;
@@ -17,11 +17,11 @@ class Line extends TimerComponent with HasGameRef<MatrixApp> {
   Line({
     required super.period,
     super.repeat = true,
+    required this.x,
   });
 
   @override
   Future<void> onLoad() async {
-    x = randomBetween(0, gameRef.size.x.toInt()).toDouble();
     length = randomBetween(5, 30);
     color = Palette
         .charEntries[randomBetween(0, Palette.charEntries.length - 1)].color;
@@ -30,25 +30,24 @@ class Line extends TimerComponent with HasGameRef<MatrixApp> {
 
   @override
   Future onTick() async {
-    children
-        .take(max(0, children.length - length))
-        .forEach((c) => c.removeFromParent());
+    final lastChar = children.isNotEmpty ? children.last as Char : null;
 
-    if (children.isNotEmpty) {
-      (children.last as Char).color = color;
+    // Add leading white char
+    final double lastCharBottom =
+        lastChar != null ? (lastChar.y + lastChar.height) : 0;
+    await add(
+      Char(x, lastCharBottom),
+    );
 
-      if ((children.first as PositionComponent).y > gameRef.size.y) {
-        removeFromParent();
-      }
+    // Colorize previous leading char and darken background below him
+    lastChar?.color = color;
+    if (lastChar != null) {
+      await gameRef.darkenBackground(x, lastChar.y);
     }
 
-    final double lastChildY = children.isEmpty
-        ? 0
-        : (children.last as PositionComponent).y +
-            (children.last as PositionComponent).height +
-            15;
-    await add(
-      Char(x, lastChildY),
-    );
+    // Fade out trailing chars
+    children.take(max(0, children.length - length)).forEach(
+          (c) => c.removeFromParent(),
+        );
   }
 }

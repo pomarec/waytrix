@@ -3,6 +3,7 @@
 
 #include <gtk/gtk.h>
 #include "gtk-layer-shell.h"
+#include <cairo.h>
 
 G_DECLARE_FINAL_TYPE(MyApplication, my_application, MY, APPLICATION,
                      GtkApplication)

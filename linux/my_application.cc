@@ -15,6 +15,14 @@ struct _MyApplication
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr, gpointer user_data)
+{
+  cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 0.0);
+  cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+  cairo_paint(cr);
+  return FALSE;
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication *application)
 {
@@ -25,17 +33,24 @@ static void my_application_activate(GApplication *application)
   // TODO: Causes Flutter to fail rendering any frames beyond the first one.
   gtk_layer_init_for_window(GTK_WINDOW(window));
 
-  gtk_layer_auto_exclusive_zone_enable(GTK_WINDOW(window));
-  gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_OVERLAY);
-  // gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
-  // gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_BOTTOM, TRUE);
+  // gtk_layer_auto_exclusive_zone_enable(GTK_WINDOW(window));
+  gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_BACKGROUND);
+  gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
+  gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_BOTTOM, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_RIGHT, TRUE);
 
-  gtk_widget_show(GTK_WIDGET(window));
+  // Logic for transparent background
 
-  // GtkWindow *window =
-  //     GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+  gtk_widget_set_app_paintable(GTK_WIDGET(window), TRUE);
+  GdkScreen *screen = gdk_screen_get_default();
+  GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+  if (visual != NULL && gdk_screen_is_composited(screen))
+  {
+    gtk_widget_set_visual(GTK_WIDGET(window), visual);
+  }
+
+  gtk_widget_show(GTK_WIDGET(window));
 
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
@@ -46,7 +61,7 @@ static void my_application_activate(GApplication *application)
   // if future cases occur).
   gboolean use_header_bar = TRUE;
 #ifdef GDK_WINDOWING_X11
-  GdkScreen *screen = gtk_window_get_screen(window);
+  // GdkScreen *screen = gtk_window_get_screen(window);
   if (GDK_IS_X11_SCREEN(screen))
   {
     const gchar *wm_name = gdk_x11_screen_get_window_manager_name(screen);
@@ -66,10 +81,10 @@ static void my_application_activate(GApplication *application)
   }
   else
   {
-    gtk_window_set_title(window, "waytrixaaaaaaaaa");
+    gtk_window_set_title(window, "waytrix");
   }
 
-  gtk_window_set_default_size(window, 1280, 720);
+  gtk_window_set_default_size(window, 400, 300);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
@@ -81,8 +96,10 @@ static void my_application_activate(GApplication *application)
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
+  g_signal_connect(G_OBJECT(GTK_WIDGET(view)), "draw", G_CALLBACK(on_draw_event), NULL);
+
   // gtk_widget_grab_focus(GTK_WIDGET(view));
-  gtk_widget_set_size_request(GTK_WIDGET(view), 100, 100);
+  gtk_widget_set_size_request(GTK_WIDGET(view), 400, 150);
 }
 
 // Implements GApplication::local_command_line.
