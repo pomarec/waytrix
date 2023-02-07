@@ -1,4 +1,4 @@
-extension Extensions<T> on Iterable<T> {
+extension IterableExtensions<T> on Iterable<T> {
   Iterable<V> mapEnumerated<V>(V Function(int i, T e) f) sync* {
     int i = 0;
     for (var item in this) {
@@ -15,6 +15,17 @@ extension Extensions<T> on Iterable<T> {
         yield mapped;
       }
       i++;
+    }
+  }
+}
+
+extension ListExtensions<T> on List<T> {
+  ensureLength<V>(int newLength, T Function(int index) fill) {
+    if (length > newLength) {
+      removeRange(newLength, length);
+    }
+    for (int i = length; i < newLength; i++) {
+      add(fill(i));
     }
   }
 }

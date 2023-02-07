@@ -49,5 +49,10 @@ class Line extends TimerComponent with HasGameRef<MatrixApp> {
     children.take(max(0, children.length - length)).forEach(
           (c) => c.removeFromParent(),
         );
+
+    // Self destroy when end reached
+    if (children.isNotEmpty && (children.first as Char).y > gameRef.size.y) {
+      removeFromParent();
+    }
   }
 }
