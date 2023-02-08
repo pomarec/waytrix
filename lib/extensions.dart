@@ -7,6 +7,13 @@ extension IterableExtensions<T> on Iterable<T> {
     }
   }
 
+  enumerated<V>(Function(int i, T e) f) {
+    int i = 0;
+    for (var item in this) {
+      f(i++, item);
+    }
+  }
+
   Iterable<V> whereMapEnumerated<V>(V? Function(int i, T e) f) sync* {
     int i = 0;
     for (var item in this) {
