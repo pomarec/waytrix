@@ -37,13 +37,19 @@ static void my_application_activate(GApplication *application)
   gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_OVERLAY);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_BOTTOM, TRUE);
-  // gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
+  gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_RIGHT, TRUE);
 
   // Logic for transparent background
 
   gtk_widget_set_app_paintable(GTK_WIDGET(window), TRUE);
+
   GdkScreen *screen = gdk_screen_get_default();
+
+  GdkDisplay *display = gdk_display_get_default();
+  GdkMonitor *monitor = gdk_display_get_monitor(display, 0);
+  gtk_layer_set_monitor(GTK_WINDOW(window), monitor);
+
   GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
   if (visual != NULL && gdk_screen_is_composited(screen))
   {
@@ -84,7 +90,8 @@ static void my_application_activate(GApplication *application)
     gtk_window_set_title(window, "waytrix");
   }
 
-  gtk_window_set_default_size(window, 400, 300);
+  gtk_window_set_default_size(window, 400, 800);
+
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
@@ -99,7 +106,7 @@ static void my_application_activate(GApplication *application)
   g_signal_connect(G_OBJECT(GTK_WIDGET(view)), "draw", G_CALLBACK(on_draw_event), NULL);
 
   // gtk_widget_grab_focus(GTK_WIDGET(view));
-  gtk_widget_set_size_request(GTK_WIDGET(view), 400, 150);
+  gtk_widget_set_size_request(GTK_WIDGET(view), 400, 800);
 }
 
 // Implements GApplication::local_command_line.
