@@ -1,18 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:waytrix/matrix_scene.dart';
 
-import 'matrix.dart';
+import 'engine.dart';
 
 void main() {
-  // final app = MatrixApp();
-  // runApp(
-  //   Container(
-  //     // color: Palette.dark.color,
-  //     color: Colors.transparent,
-  //     child: GameWidget(game: app),
-  //   ),
-  // );
-
-  runApp(CustomPaint(
-    painter: MatrixPainter(),
-  ));
+  Scene.main.add(MatrixComponent());
+  runApp(Scene.main.widget);
 }

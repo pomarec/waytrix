@@ -5,6 +5,7 @@ import 'package:random_string/random_string.dart';
 class Palette {
   static const light = PaletteEntry(Color(0xFFFFFFFF));
   static const dark = PaletteEntry(Color(0xFF181B1F));
+  static final darkPaint = Palette.dark.paint();
 
   static const red = PaletteEntry(Color(0xFFCA736C));
   static const orange = PaletteEntry(Color(0xFFBA823A));
@@ -94,4 +95,6 @@ class Palette {
         ),
       )..layout(),
   };
+
+  static const charSize = 10;
 }
