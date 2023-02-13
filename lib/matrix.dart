@@ -14,10 +14,9 @@ class MatrixPainter extends CustomPainter {
     Duration(milliseconds: (1000 / 30.0).round()),
     (_) => clock.value++,
   );
+  var _initialized = false;
 
   MatrixPainter() : super(repaint: clock) {
-    init();
-    onResize();
     clock.addListener(onTick);
     _mainTimer; // trick to avoid treeshaking
   }
@@ -36,7 +35,9 @@ class MatrixPainter extends CustomPainter {
 
   int get nbColumns => (size.width / charSize).round() + 1;
 
-  init() {}
+  init() {
+    generateFirstRowOfFullWidth();
+  }
 
   onResize() {
     columns.ensureLength(nbColumns, (index) => []);
@@ -44,10 +45,9 @@ class MatrixPainter extends CustomPainter {
   }
 
   onTick() {
-    final nextX = nextLineColumn();
-
     // Generate new lines
-    if (clockModulus(10) == 0) {
+    final nextX = nextLineColumn();
+    if (nextX != null && clockModulus(10) == 0) {
       columns[nextX].add(
         LineData(x: nextX.toDouble() * charSize),
       );
@@ -96,6 +96,10 @@ class MatrixPainter extends CustomPainter {
     if (this.size != size) {
       this.size = size;
       onResize();
+      if (!_initialized) {
+        _initialized = true;
+        init();
+      }
     }
     // return;
     paintBackground(canvas);
@@ -133,15 +137,41 @@ class MatrixPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 
   // Try to equilibrate the number of lines per column
-  int nextLineColumn() {
-    final minNumberOfLines = columns.map((e) => e.length).reduce(min);
-    final candidates = columns
-        .whereMapEnumerated(
-          (i, e) => e.length == minNumberOfLines ? i : null,
-        )
-        .toList();
-    final nextX = candidates[randomBetween(0, candidates.length - 1)];
-    return nextX;
+  int? nextLineColumn() {
+    final columnsNotOverlappingTopBorder = columns.where(
+      (c) => !c.any((l) => l.doesOverlapTopBorder()),
+    );
+    if (columnsNotOverlappingTopBorder.isEmpty) {
+      return null;
+    } else {
+      final minNumberOfLines = columnsNotOverlappingTopBorder
+          .map(
+            (c) => c.length,
+          )
+          .reduce(min);
+      final candidates = columnsNotOverlappingTopBorder
+          .whereMapEnumerated(
+            (i, e) => e.length == minNumberOfLines ? i : null,
+          )
+          .toList();
+      if (candidates.isEmpty) {
+        return null;
+      } else {
+        final nextX = candidates[randomBetween(0, candidates.length - 1)];
+        return nextX;
+      }
+    }
+  }
+
+  generateFirstRowOfFullWidth() {
+    for (var i = 0; i < nbColumns; i++) {
+      final line = LineData(x: i.toDouble() * charSize)..speed = 30;
+      columns[i].add(line);
+      if (i > 0) {
+        // final lastLine = columns[i - 1].last;
+        line.leadingY = Random().nextDouble() * -10 * charSize.toDouble();
+      }
+    }
   }
 }
 
@@ -161,4 +191,7 @@ class LineData {
       (_) => Palette.textPainterCache[Palette.randomChar]![colorIndex],
     );
   }
+
+  bool doesOverlapTopBorder() =>
+      leadingY - chars.length * MatrixPainter.charSize <= 0;
 }
