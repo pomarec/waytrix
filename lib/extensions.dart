@@ -1,3 +1,5 @@
+import 'package:random_string/random_string.dart';
+
 extension IterableExtensions<T> on Iterable<T> {
   Iterable<V> mapEnumerated<V>(V Function(int i, T e) f) sync* {
     int i = 0;
@@ -35,4 +37,6 @@ extension ListExtensions<T> on List<T> {
       add(fill(i));
     }
   }
+
+  T random() => this[randomBetween(0, length - 1)];
 }

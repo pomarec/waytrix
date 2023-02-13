@@ -1,22 +1,22 @@
-import 'package:flame/palette.dart';
+import 'dart:math';
+
 import 'package:flutter/painting.dart';
-import 'package:random_string/random_string.dart';
 
 class Palette {
-  static const light = PaletteEntry(Color(0xFFFFFFFF));
-  static const dark = PaletteEntry(Color(0xFF181B1F));
-  static final darkPaint = Palette.dark.paint();
+  static const light = Color(0xFFFFFFFF);
+  static const dark = Color(0xFF181B1F);
+  static final darkPaint = Paint()..color = dark;
 
-  static const red = PaletteEntry(Color(0xFFCA736C));
-  static const orange = PaletteEntry(Color(0xFFBA823A));
-  static const yellow = PaletteEntry(Color(0xFF8D9741));
-  static const green = PaletteEntry(Color(0xFF47A477));
-  static const cyan = PaletteEntry(Color(0xFF00A2AF));
-  static const blue = PaletteEntry(Color(0xFF5794D0));
-  static const purple = PaletteEntry(Color(0xFF9481CC));
-  static const magenta = PaletteEntry(Color(0xFFBC73A4));
+  static const red = Color(0xFFCA736C);
+  static const orange = Color(0xFFBA823A);
+  static const yellow = Color(0xFF8D9741);
+  static const green = Color(0xFF47A477);
+  static const cyan = Color(0xFF00A2AF);
+  static const blue = Color(0xFF5794D0);
+  static const purple = Color(0xFF9481CC);
+  static const magenta = Color(0xFFBC73A4);
 
-  static final entries = [
+  static final colors = [
     Palette.red,
     Palette.orange,
     Palette.yellow,
@@ -26,6 +26,19 @@ class Palette {
     Palette.purple,
     Palette.magenta,
   ];
+
+  static final alphas = [
+    10 * 255 ~/ 100,
+    15 * 255 ~/ 100,
+    25 * 255 ~/ 100,
+    50 * 255 ~/ 100,
+    60 * 255 ~/ 100,
+    70 * 255 ~/ 100,
+    85 * 255 ~/ 100,
+    100 * 255 ~/ 100,
+  ];
+
+  static const charSize = 10;
 
   static const chars = [
     'ب',
@@ -60,41 +73,31 @@ class Palette {
 
   static const fontFamily = "Kawkab Mono Bold";
 
-  static PaletteEntry get randomCharEntry =>
-      entries[randomBetween(0, entries.length - 1)];
-  static String get randomChar => chars[randomBetween(0, chars.length - 1)];
+  static TextPainter textPainterCache(
+    String char, [
+    int? colorIndex, // null for light color
+    int? alphaIndex,
+  ]) =>
+      _textPainterCache[char]![colorIndex ?? Palette.colors.length]
+          [min(alphaIndex ?? alphas.length - 1, alphas.length - 1)];
 
-  static final Map<String, List<TextPainter>> textPainterCache = {
+  static final Map<String, List<List<TextPainter>>> _textPainterCache = {
     for (String char in Palette.chars)
-      char: Palette.entries
-          .map(
-            (e) => TextPainter(
-              textDirection: TextDirection.ltr,
-              text: TextSpan(
-                text: char,
-                style: TextStyle(
-                  fontFamily: Palette.fontFamily,
-                  color: e.color,
+      char: [
+        for (Color color in Palette.colors.toList()..add(Palette.light))
+          [
+            for (int alpha in Palette.alphas)
+              TextPainter(
+                textDirection: TextDirection.ltr,
+                text: TextSpan(
+                  text: char,
+                  style: TextStyle(
+                    fontFamily: Palette.fontFamily,
+                    color: color.withAlpha(alpha),
+                  ),
                 ),
-              ),
-            )..layout(),
-          )
-          .toList(),
+              )..layout()
+          ]
+      ]
   };
-
-  static final Map<String, TextPainter> textPainterLightCache = {
-    for (String char in Palette.chars)
-      char: TextPainter(
-        textDirection: TextDirection.ltr,
-        text: TextSpan(
-          text: char,
-          style: TextStyle(
-            fontFamily: Palette.fontFamily,
-            color: Palette.light.color,
-          ),
-        ),
-      )..layout(),
-  };
-
-  static const charSize = 10;
 }

@@ -76,7 +76,7 @@ class MatrixComponent extends Component {
   void paintOn(Canvas canvas) {
     // Paint background
     var path = Path();
-    path.moveTo(0, 0);
+    path.moveTo(0, backgroundHeightPerColumn.first);
     backgroundHeightPerColumn.enumerated((i, height) {
       final nextHeight = i < backgroundHeightPerColumn.length - 1
           ? (backgroundHeightPerColumn[i + 1] + height) / 2

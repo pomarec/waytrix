@@ -18,10 +18,10 @@ class VerticalWord extends Component {
     this.x = 0,
   })  : leadingY = 0,
         speed = randomBetween(4, 9),
-        colorIndex = randomBetween(0, Palette.entries.length - 1) {
+        colorIndex = randomBetween(0, Palette.colors.length - 1) {
     chars = List.generate(
       randomBetween(5, 30),
-      (_) => Palette.textPainterCache[Palette.randomChar]![colorIndex],
+      (i) => Palette.textPainterCache(Palette.chars.random(), colorIndex, i),
     );
   }
 
@@ -37,14 +37,14 @@ class VerticalWord extends Component {
       leadingY += Palette.charSize;
       chars = chars
           .skip(1)
-          .map(
-            (e) => Palette
-                .textPainterCache[(e.text as TextSpan).text!]![colorIndex],
+          .mapEnumerated(
+            (i, e) => Palette.textPainterCache(
+                (e.text as TextSpan).text!, colorIndex, i),
           )
           .toList()
-        ..addAll([
-          Palette.textPainterLightCache[Palette.randomChar]!,
-        ]);
+        ..add(
+          Palette.textPainterCache(Palette.chars.random()),
+        );
     }
 
     // Dispose if reached end
@@ -55,14 +55,14 @@ class VerticalWord extends Component {
 
   @override
   paintOn(Canvas canvas) {
-    chars.enumerated(
-      (i, e) => e.paint(
+    chars.enumerated((i, e) {
+      e.paint(
         canvas,
         Offset(
           x + (Palette.charSize - e.size.width) / 2,
           leadingY - (chars.length - i) * Palette.charSize,
         ),
-      ),
-    );
+      );
+    });
   }
 }
