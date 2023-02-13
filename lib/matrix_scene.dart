@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:random_string/random_string.dart';
 import 'package:waytrix/engine.dart';
@@ -20,6 +21,23 @@ class MatrixComponent extends Component {
   }
 
   @override
+  init() {
+    super.init();
+    // Generate a word per columns like a "curtain"
+    for (var i = 0; i < columns.length; i++) {
+      final word = VerticalWord(
+        parent: this,
+        x: i.toDouble() * Palette.charSize,
+      )
+        ..speed = 100
+        ..leadingY = Random().nextDouble() * -10 * Palette.charSize.toDouble();
+
+      columns[i].add(word);
+      Scene.main.add(word);
+    }
+  }
+
+  @override
   onResize() {
     super.onResize();
     final nbColumns = (Scene.main.size.width / Palette.charSize).round() + 1;
@@ -31,17 +49,24 @@ class MatrixComponent extends Component {
   onTick() {
     super.onTick();
     // Generate new words
-    final nextX = nextWordColumn();
-    if (nextX != null && Scene.main.clockModulus(10) == 0) {
-      final word = VerticalWord(
-        parent: this,
-        x: nextX.toDouble() * Palette.charSize,
-      );
-      columns[nextX].add(word);
-      Scene.main.add(word);
+    if (Scene.clock.value % 2 == 0) {
+      final nextX = nextWordColumn();
+      if (nextX != null) {
+        final word = VerticalWord(
+          parent: this,
+          x: nextX.toDouble() * Palette.charSize,
+        );
+        columns[nextX].add(word);
+        Scene.main.add(word);
+      }
     }
+  }
 
-    // Make background move
+  @override
+  void paintOn(Canvas canvas) {
+    super.paintOn(canvas);
+
+    // Make background fall down
     columns.enumerated((i, column) {
       if (column.isNotEmpty) {
         backgroundHeightPerColumn[i] = min(
@@ -53,27 +78,7 @@ class MatrixComponent extends Component {
         );
       }
     });
-  }
 
-  @override
-  init() {
-    super.init();
-    // Generate a word per columns like a "curtain"
-    for (var i = 0; i < columns.length; i++) {
-      final word = VerticalWord(
-        parent: this,
-        x: i.toDouble() * Palette.charSize,
-      )
-        ..speed = 30
-        ..leadingY = Random().nextDouble() * -10 * Palette.charSize.toDouble();
-
-      columns[i].add(word);
-      Scene.main.add(word);
-    }
-  }
-
-  @override
-  void paintOn(Canvas canvas) {
     // Paint background
     var path = Path();
     path.moveTo(0, backgroundHeightPerColumn.first);
@@ -97,26 +102,22 @@ class MatrixComponent extends Component {
     path.lineTo(0, 0);
     path.close();
     canvas.drawPath(path, Palette.darkPaint);
-
-    super.paintOn(canvas);
   }
 
   // Try to equilibrate the number of words per column
   int? nextWordColumn() {
-    final columnsNotOverlappingTopBorder = columns.where(
-      (c) => !c.any((l) => l.doesOverlapTopBorder()),
+    final columnsIndexesNotOverlappingTopBorder = columns.whereMapEnumerated(
+      (i, c) => !c.any((l) => l.doesOverlapTopBorder()) ? i : null,
     );
-    if (columnsNotOverlappingTopBorder.isEmpty) {
+    if (columnsIndexesNotOverlappingTopBorder.isEmpty) {
       return null;
     } else {
-      final minNumberOfWords = columnsNotOverlappingTopBorder
-          .map(
-            (c) => c.length,
-          )
+      final minNumberOfWords = columnsIndexesNotOverlappingTopBorder
+          .map((i) => columns[i].length)
           .reduce(min);
-      final candidates = columnsNotOverlappingTopBorder
+      final candidates = columnsIndexesNotOverlappingTopBorder
           .whereMapEnumerated(
-            (i, e) => e.length == minNumberOfWords ? i : null,
+            (i, e) => columns[e].length == minNumberOfWords ? e : null,
           )
           .toList();
       if (candidates.isEmpty) {

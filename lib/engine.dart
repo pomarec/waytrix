@@ -11,10 +11,11 @@ class Component {
 }
 
 class Scene extends CustomPainter with Component {
+  static final int tickDuration = (1000 / 30.0).round();
   static final Scene main = Scene();
   static final ValueNotifier<int> clock = ValueNotifier(0);
   static final Timer _mainTimer = Timer.periodic(
-    Duration(milliseconds: (1000 / 30.0).round()),
+    Duration(milliseconds: tickDuration),
     (_) => clock.value++,
   );
 
@@ -27,8 +28,6 @@ class Scene extends CustomPainter with Component {
   }
 
   Size size = Size.zero;
-
-  clockModulus(double mod) => (clock.value % mod.ceil()).toDouble();
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;

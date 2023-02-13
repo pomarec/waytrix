@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/painting.dart';
 
 class Palette {
-  static const light = Color(0xFFFFFFFF);
-  static const dark = Color(0xFF181B1F);
+  static const light = Color(0xFFFFF7ED);
+  static const dark = Color(0xFF000000);
   static final darkPaint = Paint()..color = dark;
 
   static const red = Color(0xFFCA736C);
@@ -38,7 +38,7 @@ class Palette {
     100 * 255 ~/ 100,
   ];
 
-  static const charSize = 10;
+  static const charSize = 20;
 
   static const chars = [
     'ب',

@@ -17,10 +17,10 @@ class VerticalWord extends Component {
     required this.parent,
     this.x = 0,
   })  : leadingY = 0,
-        speed = randomBetween(4, 9),
+        speed = randomBetween(20, 40),
         colorIndex = randomBetween(0, Palette.colors.length - 1) {
     chars = List.generate(
-      randomBetween(5, 30),
+      randomBetween(10, 40),
       (i) => Palette.textPainterCache(Palette.chars.random(), colorIndex, i),
     );
   }
@@ -33,19 +33,26 @@ class VerticalWord extends Component {
     super.onTick();
 
     // Move down
-    if (Scene.main.clockModulus(10 / speed.toDouble()) == 0) {
-      leadingY += Palette.charSize;
-      chars = chars
-          .skip(1)
-          .mapEnumerated(
-            (i, e) => Palette.textPainterCache(
-                (e.text as TextSpan).text!, colorIndex, i),
-          )
-          .toList()
-        ..add(
-          Palette.textPainterCache(Palette.chars.random()),
-        );
-    }
+    final yIncr = speed * (1 / Scene.tickDuration) * Palette.charSize;
+    final nbNewChar = ((leadingY + yIncr) ~/ Palette.charSize) -
+        (leadingY ~/ Palette.charSize);
+    leadingY += yIncr;
+
+    // Fill new chars
+    chars = chars
+        .skip(nbNewChar)
+        .mapEnumerated(
+          (i, e) => Palette.textPainterCache(
+              (e.text as TextSpan).text!, colorIndex, i),
+        )
+        .toList()
+      ..addAll(
+        List.generate(
+          nbNewChar,
+          (i) => Palette.textPainterCache(
+              Palette.chars.random(), i == nbNewChar - 1 ? null : colorIndex),
+        ),
+      );
 
     // Dispose if reached end
     if (leadingY - (chars.length * Palette.charSize) > Scene.main.size.height) {
@@ -60,7 +67,8 @@ class VerticalWord extends Component {
         canvas,
         Offset(
           x + (Palette.charSize - e.size.width) / 2,
-          leadingY - (chars.length - i) * Palette.charSize,
+          ((leadingY ~/ Palette.charSize).toDouble() - (chars.length - i)) *
+              Palette.charSize,
         ),
       );
     });

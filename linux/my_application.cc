@@ -34,11 +34,19 @@ static void my_application_activate(GApplication *application)
   gtk_layer_init_for_window(GTK_WINDOW(window));
 
   // gtk_layer_auto_exclusive_zone_enable(GTK_WINDOW(window));
-  gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_OVERLAY);
+
+  gtk_layer_set_layer(GTK_WINDOW(window), GTK_LAYER_SHELL_LAYER_TOP);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_BOTTOM, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, TRUE);
   gtk_layer_set_anchor(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_RIGHT, TRUE);
+
+  // gtk_layer_set_exclusive_zone(GTK_WINDOW(window), 0);
+  // gtk_layer_auto_exclusive_zone_enable(GTK_WINDOW(window));
+  gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_TOP, -38);
+  gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_BOTTOM, 0);
+  gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_LEFT, 0);
+  gtk_layer_set_margin(GTK_WINDOW(window), GTK_LAYER_SHELL_EDGE_RIGHT, 0);
 
   // Logic for transparent background
 
@@ -47,7 +55,9 @@ static void my_application_activate(GApplication *application)
   GdkScreen *screen = gdk_screen_get_default();
 
   GdkDisplay *display = gdk_display_get_default();
-  GdkMonitor *monitor = gdk_display_get_monitor(display, 0);
+  const char *a = getenv("WAYTRIX_SCREEN");
+  int waytrix_screen = atoi(a);
+  GdkMonitor *monitor = gdk_display_get_monitor(display, waytrix_screen);
   gtk_layer_set_monitor(GTK_WINDOW(window), monitor);
 
   GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
