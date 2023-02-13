@@ -30,8 +30,8 @@ class MatrixComponent extends Component {
   @override
   onTick() {
     super.onTick();
-    // Generate new lines
-    final nextX = nextLineColumn();
+    // Generate new words
+    final nextX = nextWordColumn();
     if (nextX != null && Scene.main.clockModulus(10) == 0) {
       final word = VerticalWord(
         parent: this,
@@ -56,35 +56,67 @@ class MatrixComponent extends Component {
   }
 
   @override
+  init() {
+    super.init();
+    // Generate a word per columns like a "curtain"
+    for (var i = 0; i < columns.length; i++) {
+      final word = VerticalWord(
+        parent: this,
+        x: i.toDouble() * Palette.charSize,
+      )
+        ..speed = 30
+        ..leadingY = Random().nextDouble() * -10 * Palette.charSize.toDouble();
+
+      columns[i].add(word);
+      Scene.main.add(word);
+    }
+  }
+
+  @override
   void paintOn(Canvas canvas) {
     // Paint background
+    var path = Path();
+    path.moveTo(0, 0);
     backgroundHeightPerColumn.enumerated((i, height) {
-      canvas.drawRect(
-        Rect.fromLTWH(i * Palette.charSize.toDouble(), 0,
-            Palette.charSize.toDouble(), height),
-        Palette.darkPaint,
+      final nextHeight = i < backgroundHeightPerColumn.length - 1
+          ? (backgroundHeightPerColumn[i + 1] + height) / 2
+          : 0;
+      path.quadraticBezierTo(
+        i * Palette.charSize.toDouble(),
+        height,
+        (i + 0.5) * Palette.charSize.toDouble(),
+        height,
+      );
+      path.quadraticBezierTo(
+        (i + 1) * Palette.charSize.toDouble(),
+        height,
+        (i + 1) * Palette.charSize.toDouble(),
+        nextHeight.toDouble(),
       );
     });
+    path.lineTo(0, 0);
+    path.close();
+    canvas.drawPath(path, Palette.darkPaint);
 
     super.paintOn(canvas);
   }
 
-  // Try to equilibrate the number of lines per column
-  int? nextLineColumn() {
+  // Try to equilibrate the number of words per column
+  int? nextWordColumn() {
     final columnsNotOverlappingTopBorder = columns.where(
       (c) => !c.any((l) => l.doesOverlapTopBorder()),
     );
     if (columnsNotOverlappingTopBorder.isEmpty) {
       return null;
     } else {
-      final minNumberOfLines = columnsNotOverlappingTopBorder
+      final minNumberOfWords = columnsNotOverlappingTopBorder
           .map(
             (c) => c.length,
           )
           .reduce(min);
       final candidates = columnsNotOverlappingTopBorder
           .whereMapEnumerated(
-            (i, e) => e.length == minNumberOfLines ? i : null,
+            (i, e) => e.length == minNumberOfWords ? i : null,
           )
           .toList();
       if (candidates.isEmpty) {
@@ -95,15 +127,4 @@ class MatrixComponent extends Component {
       }
     }
   }
-
-  // generateFirstRowOfFullWidth() {
-  //   for (var i = 0; i < nbColumns; i++) {
-  //     final line = VerticalWord(x: i.toDouble() * charSize)..speed = 30;
-  //     columns[i].add(line);
-  //     if (i > 0) {
-  //       // final lastLine = columns[i - 1].last;
-  //       line.leadingY = Random().nextDouble() * -10 * charSize.toDouble();
-  //     }
-  //   }
-  // }
 }

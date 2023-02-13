@@ -49,9 +49,7 @@ class Scene extends CustomPainter with Component {
 
   @override
   @mustCallSuper
-  init() {
-    _components.map((c) => c.init());
-  }
+  init() => _components.toList().forEach((c) => c.init());
 
   @override
   @mustCallSuper
@@ -66,11 +64,11 @@ class Scene extends CustomPainter with Component {
   void paint(Canvas canvas, Size size) {
     if (this.size != size) {
       this.size = size;
+      onResize();
       if (!_initialized) {
         _initialized = true;
         init();
       }
-      onResize();
     }
     for (var c in _components) {
       canvas.translate(c.position.dx, c.position.dy);
